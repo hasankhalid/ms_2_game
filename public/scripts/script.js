@@ -12,4 +12,6 @@ let track_synth = createSoundTrack('../assets/music/QJamMSSynth.wav', -20, synth
 let track_arp = createSoundTrack('../assets/music/QJamMSArp.wav', -80, synth_filter);
 let track_bass = createSoundTrack('../assets/music/QJamMSBass.wav', -100, synth_filter);
 let track_drums = createSoundTrack('../assets/music/QJamMSDrums.wav', -100, synth_filter);
+let track_piano = createSoundTrack('../assets/music/QJamMSPiano.wav', -100, synth_filter);
+let track_vocals = createSoundTrack('../assets/music/QJamMSVocals.wav', -100, synth_filter);
 

@@ -16,7 +16,12 @@ function Ground(x,y,w,h) {
             noStroke();
             fill(50);
             translate(position.x, position.y); //translate to position;
-            rect(0,0, this.w, this.h); 
+          //  rect(0,0, this.w, this.h); 
+            imageMode(CENTER)
+          //  image(floorText,0,0, 333, this.h);
+            for (let i =-this.w/2; i < this.w/2 + 333; i+=333) {
+                image(floorText,i,0, 333, this.h); 
+            }
         pop();
     }
 }
@@ -43,7 +48,8 @@ function Platform(x,y,w,h, audio_var) {
             noStroke();
             fill(50);
             translate(position.x, position.y); //translate to position;
-            rect(0,0, this.w, this.h); 
+            imageMode(CENTER)
+            image(platformText,0,-this.h/4.2, 275, this.h); 
         pop();
     }
 
@@ -80,6 +86,7 @@ function Player(x,y,w,h, category) {
         inertia: Infinity,
         collisionFilter: {
             category: category,
+            group: -1
         }
     }
     this.body = Bodies.rectangle(x,y,w,h, options);
@@ -89,14 +96,15 @@ function Player(x,y,w,h, category) {
     //add our body to the world so that this body has physics applied to it.
     Composite.add(world, [this.body]);
 
+
     this.show = function() {
         let position = this.body.position;
-        let angle = this.body.angle;
         
         push(); //Use push and pop to assign the body its own layer.
-        //    rotate(angle);
             translate(position.x, position.y); //translate to position;
-            rect(0,0, this.w, this.h); 
+          //  rect(0,0, this.w, this.h); 
+            imageMode(CENTER)
+            image(playerText,0,0, this.w, this.h); 
         pop();
     }
 
@@ -116,15 +124,24 @@ function Player(x,y,w,h, category) {
         else if (Matter.Collision.collides(this.body, platform2.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform2.body).collided;
         }
+        else if (Matter.Collision.collides(this.body, platform3.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform3.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform4.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform4.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform5.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform5.body).collided;
+        }
         return isGrounded;
     }
 
     this.jump = function() {
         if (this.grounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -15 });
+            Body.setVelocity(this.body, { x: 0, y: -14 });
         }
         if (this.platformGrounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -13 });
+            Body.setVelocity(this.body, { x: 0, y: -12.5 });
         }
     }
 
@@ -166,6 +183,7 @@ function Audience(x,y,w,h, category, id) {
         inertia: Infinity,
         collisionFilter: {
             category: category,
+            group: -1
         }
     }
     this.id = id;
@@ -178,7 +196,6 @@ function Audience(x,y,w,h, category, id) {
     Composite.add(world, [this.body]);
 
     this.show = function() {
-
             let position = this.body.position;
             push(); //Use push and pop to assign the body its own layer.
                 fill("#222");
@@ -198,21 +215,29 @@ function Audience(x,y,w,h, category, id) {
 
     this.platformGrounded = function() {
         let isGrounded = false;
+
+      /*  for (let i = 0; i < platformArray.length; i++) {
+            if (Matter.Collision.collides(this.body, platformArray[i].body).collided) {
+                isGrounded = true; 
+                break;
+            }
+        } */
+
         if (Matter.Collision.collides(this.body, platform1.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform1.body).collided;
         }
         else if (Matter.Collision.collides(this.body, platform2.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform2.body).collided;
-        }
+        } 
         return isGrounded;
     }
 
     this.jump = function() {
         if (this.grounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -15 });
+            Body.setVelocity(this.body, { x: 0, y: -14 });
         }
         if (this.platformGrounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -13 });
+            Body.setVelocity(this.body, { x: 0, y: -12.5 });
         }
     }
 
