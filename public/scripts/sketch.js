@@ -52,7 +52,7 @@ let dayColor1, dayColor2, nightColor1, nightColor2;
 
 //Declare asset variables
 let floorText, platformText, playerText, backgroundTexture_d, background_layer_cover, background_layer_cover_two, rock_grass;
-let background_layer_night, background_cover_one_night, background_cover_two_night;
+let background_layer_night, background_cover_one_night, background_cover_two_night, sun, moon;
 
 function preload() {
     floorText = loadImage('../assets/art/floor2.png');
@@ -65,11 +65,14 @@ function preload() {
     background_layer_night = loadImage('../assets/art/background_night.png');
     background_cover_one_night = loadImage('../assets/art/first_background_night.png');
     background_cover_two_night = loadImage('../assets/art/second_bg_night.png');
+    sun = loadImage('../assets/art/sun.png');
+    moon = loadImage('../assets/art/moon.png');
 }
 
 function setup() {
     createCanvas(window.innerWidth, window.innerHeight, WEBGL);
     rectMode(CENTER);
+    ellipseMode(CENTER);
     engine = Engine.create();
     world = engine.world;
 
@@ -124,7 +127,7 @@ function draw() {
         }
     }
 
-   createGradientBackground('day');
+   createGradientBackground('night');
     ground.show();
 
 
@@ -235,7 +238,9 @@ function createGradientBackground(tod) {
         background('#8B5043');
         for (let i =-width; i < width/2 + (height/0.56); i+=(height/0.56)) {
             image(backgroundTexture_d,i,-height*1.2, (height/0.56), 1.8*height);
+
         }
+        image(sun, -125, -525, 275,275);
         for (let i =-width; i < width; i+=width) {
             image(background_layer_cover,i,-75, width, 350);
             image(background_layer_cover_two,i,-60, width, 410);
@@ -247,6 +252,7 @@ function createGradientBackground(tod) {
         for (let i =-width; i < width/2 + (height/0.56); i+=(height/0.56)) {
             image(background_layer_night,i,-height*1.2, (height/0.56), 1.8*height);
         }
+        image(moon, 0, -425, 150,150);
         for (let i =-width; i < width; i+=width) {
             image(background_cover_one_night,i,-75, width, 350);
             image(background_cover_two_night,i,-60, width, 410);
