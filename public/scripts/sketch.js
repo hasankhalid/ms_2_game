@@ -7,7 +7,7 @@ let Engine = Matter.Engine,  //Module alias
 
 //camera
 let camera;
-let cameraVelocity = 1.7;
+let cameraVelocity = 1.9;
 
 //matter.js variables below
 let engine;
@@ -27,6 +27,12 @@ let platform2;
 let platform3;
 let platform4;
 let platform5;
+let platform6;
+let platform7;
+let platform8;
+let platform9;
+let platform10;
+let platform11;
 let platform_height = 80;
 
 let playerCollisionCateg = 0x0001; //Define collision category as bit fields. 
@@ -70,7 +76,6 @@ function setup() {
     socket = io.connect('http://localhost:3000');
     ground = new Ground(0,height/2-(ground_height*0.5), width * groundOverflowFactor,ground_height); //set camera movement to width
     player = new Player(-width/2 * (groundOverflowFactor/1.25),0,80,96, playerCollisionCateg);
-    //console.log(-width/2 * (groundOverflowFactor/1.25));
 
     socketData = {
         x: -width/2 * (groundOverflowFactor/1.25),
@@ -79,13 +84,22 @@ function setup() {
    // socket.on('position', function(data) {})
 
 
-    platform1 = new Platform(-125,-50-(platform_height*0.5), 250,platform_height, track_arp); //set camera movement to width
-    platform2 = new Platform(200,80-(platform_height*0.5), 250,platform_height, track_bass); //set camera movement to width
-    platform3 = new Platform(-400,80-(platform_height*0.5), 250,platform_height, track_drums); //set camera movement to width
-    platform4 = new Platform(500,-60-(platform_height*0.5), 250,platform_height, track_piano); //set camera movement to width
-    platform5 = new Platform(900,100-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform1 = new Platform(-900,100-(platform_height*0.5), 250,platform_height, track_drums); //set camera movement to width
+    platform2 = new Platform(-520,-120-(platform_height*0.5), 250,platform_height, track_arp); //set camera movement to width
+    platform3 = new Platform(-200,-300-(platform_height*0.5), 250,platform_height, track_arp); //set camera movement to width
+    platform4 = new Platform(-150,150-(platform_height*0.5), 250,platform_height, track_bass); //set camera movement to width
+    platform5 = new Platform(160,-550-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform6 = new Platform(550,60-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform7 = new Platform(960,-120-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform8 = new Platform(930,-370-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform9 = new Platform(300,-130-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform10 = new Platform(-1050,-140-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform11 = new Platform(1100,75-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform12 = new Platform(-150,-730-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
 
-    let platforms = [platform1, platform2, platform3, platform4, platform5];
+   // platform5 = new Platform(500,-60-(platform_height*0.5), 250,platform_height, track_piano); //set camera movement to width
+
+    let platforms = [platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform8, platform9, platform10, platform11, platform12];
     platformArray.push(...platforms);
 
     // create runner
@@ -110,11 +124,7 @@ function draw() {
         }
     }
 
-
-
-    background(220);
-
-   createGradientBackground('night');
+   createGradientBackground('day');
     ground.show();
 
 
@@ -123,13 +133,6 @@ function draw() {
         platformArray[i].activateColliderState(playerCollisionCateg); //Activate collider state for all platforms
         platformArray[i].checkCollision(); //Activate collider state for all platforms
     }
-
-  /*  platform1.show();
-    platform2.show();
-    platform1.activateColliderState(playerCollisionCateg);
-    platform2.activateColliderState(playerCollisionCateg);
-    platform1.checkCollision();
-    platform2.checkCollision(); */
     
     socket.emit('createAudience', socketData); //send Create Audience socket data, 
     socket.on('createAudience', createAudienceSprite); //If create audience data is received, create an audience sprite
@@ -156,20 +159,14 @@ function draw() {
         }
     }
 
-    console.log(camera.eyeY);
-    console.log(-height*0.6);
 
-    if ((dist(player.body.position.x, player.body.position.y, player.body.position.x,-height/2) - player.h) < 40) {
-        console.log();
-        if (camera.eyeY > -height*0.68) {
-            camera.move(0,-1.5,0); //move the camera Backward by cameraVelocity.
-        }
+    //Updated camera follow with lerp
+    if (camera.eyeY <= 1) {
+            let lerpedPosition = lerp(camera.eyeY, player.body.position.y, 0.08);
+            if (lerpedPosition < 1) {
+                camera.setPosition(camera.eyeX, lerpedPosition, camera.eyeZ);
+            }
     }
-    else {
-        if (camera.eyeY < 0) {
-            camera.move(0, 1.5, 0)
-        } 
-    } 
 
     //map ground movement to filter on synth here.
     let playerXpos = player.body.position.x;
@@ -190,16 +187,24 @@ function keyPressed() {
 function movePlayer(code) {
     if (code === 39) {
         player.move('forward', playerVelocity, playerJumpVelocity);
-        let edgeDistance = dist(width*groundOverflowFactor, 0, camera.eyeX+width, 0) - (width*groundOverflowFactor/4);
-        if (edgeDistance > 5) {
-            camera.move(cameraVelocity,0,0); //move the camera Forward by forward Velocity
-        }
+        let edgeDistanceR = dist(width*groundOverflowFactor, 0, camera.eyeX+width, 0) - (width*groundOverflowFactor/4);
+        let edgeDistanceL = (width*groundOverflowFactor/4) - dist(0, 0, player.body.position.x, 0);
+        if (edgeDistanceR > 0 && edgeDistanceL > -28) {
+          //  camera.move(cameraVelocity,0,0); //move the camera Forward by forward Velocity
+                let lerpedPosition = lerp(camera.eyeX, player.body.position.x, 0.08);
+                camera.setPosition(lerpedPosition, camera.eyeY, camera.eyeZ);
+                
+        } 
+
     }
     if (code === 37) {
         player.move('backward', playerVelocity, playerJumpVelocity);
-        let edgeDistance = dist(0, 0, camera.eyeX, 0) - (width*groundOverflowFactor/4);
-        if (edgeDistance < -4) {
-            camera.move(-cameraVelocity,0,0); //move the camera Backward by cameraVelocity.
+      //  let edgeDistance = (width*groundOverflowFactor/4) - dist(0, 0, camera.eyeX, 0);
+        let edgeDistanceR = (width*groundOverflowFactor/4) - dist(0, 0, player.body.position.x, 0);
+        if (edgeDistanceR > -28) {
+         //   camera.move(-cameraVelocity,0,0); //move the camera Backward by cameraVelocity.
+            let lerpedPosition = lerp(camera.eyeX, player.body.position.x, 0.08);
+            camera.setPosition(lerpedPosition, camera.eyeY, camera.eyeZ);
         }
     }
 }
@@ -227,6 +232,7 @@ function moveAudienceElem(data) {
 
 function createGradientBackground(tod) {
     if (tod === 'day') {
+        background('#8B5043');
         for (let i =-width; i < width/2 + (height/0.56); i+=(height/0.56)) {
             image(backgroundTexture_d,i,-height*1.2, (height/0.56), 1.8*height);
         }
@@ -237,6 +243,7 @@ function createGradientBackground(tod) {
         }
     }   
     else {
+        background('#693168');
         for (let i =-width; i < width/2 + (height/0.56); i+=(height/0.56)) {
             image(background_layer_night,i,-height*1.2, (height/0.56), 1.8*height);
         }

@@ -133,15 +133,36 @@ function Player(x,y,w,h, category) {
         else if (Matter.Collision.collides(this.body, platform5.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform5.body).collided;
         }
+        else if (Matter.Collision.collides(this.body, platform6.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform6.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform7.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform7.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform8.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform8.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform9.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform9.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform10.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform10.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform11.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform11.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform12.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform12.body).collided;
+        }
         return isGrounded;
     }
 
     this.jump = function() {
         if (this.grounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -14 });
+            Body.setVelocity(this.body, { x: 0, y: -16 });
         }
         if (this.platformGrounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -12.5 });
+            Body.setVelocity(this.body, { x: 0, y: -13.7 });
         }
     }
 
@@ -215,20 +236,42 @@ function Audience(x,y,w,h, category, id) {
 
     this.platformGrounded = function() {
         let isGrounded = false;
-
-      /*  for (let i = 0; i < platformArray.length; i++) {
-            if (Matter.Collision.collides(this.body, platformArray[i].body).collided) {
-                isGrounded = true; 
-                break;
-            }
-        } */
-
         if (Matter.Collision.collides(this.body, platform1.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform1.body).collided;
         }
         else if (Matter.Collision.collides(this.body, platform2.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform2.body).collided;
-        } 
+        }
+        else if (Matter.Collision.collides(this.body, platform3.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform3.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform4.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform4.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform5.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform5.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform6.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform6.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform7.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform7.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform8.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform8.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform9.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform9.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform10.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform10.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform11.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform11.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform12.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform12.body).collided;
+        }
         return isGrounded;
     }
 
@@ -236,6 +279,7 @@ function Audience(x,y,w,h, category, id) {
         if (this.grounded()) {
             Body.setVelocity(this.body, { x: 0, y: -14 });
         }
+        console.log(this.platformGrounded());
         if (this.platformGrounded()) {
             Body.setVelocity(this.body, { x: 0, y: -12.5 });
         }
