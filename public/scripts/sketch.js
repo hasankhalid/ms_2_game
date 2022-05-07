@@ -46,13 +46,22 @@ let platformArray = []; //Define an array that will contain platforms in this wo
 
 let socketData;
 
-
-//Declare gradient colors;
-let dayColor1, dayColor2, nightColor1, nightColor2;
-
 //Declare asset variables
 let floorText, platformText, playerText, backgroundTexture_d, background_layer_cover, background_layer_cover_two, rock_grass;
 let background_layer_night, background_cover_one_night, background_cover_two_night, sun, moon;
+let dayLoad, nightLoad, dayClick, nightClick, ghost, dj, zen;
+
+let redCoinTotal = 0; 
+let blueCoinTotal = 0;
+
+let redCoinCount = 0;
+let blueCoinCount = 0;
+
+let font;
+
+let theme = 'night';
+
+let menuY;
 
 function preload() {
     floorText = loadImage('../assets/art/floor2.png');
@@ -67,6 +76,16 @@ function preload() {
     background_cover_two_night = loadImage('../assets/art/second_bg_night.png');
     sun = loadImage('../assets/art/sun.png');
     moon = loadImage('../assets/art/moon.png');
+    coin1 = loadImage('../assets/art/speaker1.png');
+    coin2 = loadImage('../assets/art/speaker2.png');
+    font = loadFont("../assets/type/Raleway-SemiBold.ttf");
+    dayLoad = loadImage('../assets/art/load/LoadDay.png');
+    nightLoad = loadImage('../assets/art/load/LoadNight.png');
+    dayClick = loadImage('../assets/art/load/ClickDay.png');
+    nightClick = loadImage('../assets/art/load/ClickNight.png');
+    ghost = loadImage('../assets/art/ghost.png');
+    dj = loadImage('../assets/art/dj.png');
+    zen = loadImage('../assets/art/zen.png');
 }
 
 function setup() {
@@ -87,23 +106,35 @@ function setup() {
    // socket.on('position', function(data) {})
 
 
-    platform1 = new Platform(-900,100-(platform_height*0.5), 250,platform_height, track_drums); //set camera movement to width
-    platform2 = new Platform(-520,-120-(platform_height*0.5), 250,platform_height, track_arp); //set camera movement to width
-    platform3 = new Platform(-200,-300-(platform_height*0.5), 250,platform_height, track_arp); //set camera movement to width
-    platform4 = new Platform(-150,150-(platform_height*0.5), 250,platform_height, track_bass); //set camera movement to width
-    platform5 = new Platform(160,-550-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform6 = new Platform(550,60-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform7 = new Platform(960,-120-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform8 = new Platform(930,-370-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform9 = new Platform(300,-130-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform10 = new Platform(-1050,-140-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform11 = new Platform(1100,75-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
-    platform12 = new Platform(-150,-730-(platform_height*0.5), 250,platform_height, track_vocals); //set camera movement to width
+    platform1 = new Platform(-900,100-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform2 = new Platform(-520,-120-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform3 = new Platform(-200,-300-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform4 = new Platform(-150,150-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform5 = new Platform(160,-550-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform6 = new Platform(550,60-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform7 = new Platform(960,-120-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform8 = new Platform(930,-370-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform9 = new Platform(300,-130-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform10 = new Platform(-1050,-140-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform11 = new Platform(1100,75-(platform_height*0.5), 250,platform_height); //set camera movement to width
+    platform12 = new Platform(-150,-730-(platform_height*0.5), 250,platform_height); //set camera movement to width
 
    // platform5 = new Platform(500,-60-(platform_height*0.5), 250,platform_height, track_piano); //set camera movement to width
 
     let platforms = [platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform8, platform9, platform10, platform11, platform12];
     platformArray.push(...platforms);
+
+    for (let i = 0; i < platformArray.length; i++) { 
+        platformArray[i].createCoins();
+    }
+
+    for (let i = 0; i < platformArray.length; i++) {
+        redCoinTotal += platformArray[i].coins.filter((obj) => obj.variant === 'red').length;
+        blueCoinTotal += platformArray[i].coins.filter((obj) => obj.variant === 'blue').length;
+    }
+
+    renderTotalRed = redCoinTotal;
+    renderTotalBlue = blueCoinTotal;
 
     // create runner
     runner = Runner.create();
@@ -113,28 +144,22 @@ function setup() {
     camera = createCamera();
     camera.move((-width/2*groundOverflowFactor/2),0,0); //move the camera to the start of the scene
 
-    //Define gradient colors;
-    dayColor1 = color(168,98,82); //#A86252
-    dayColor2 = color(214,124,104); //#D67C68
-    nightColor1 = color(69,67,142); //#45438E
-    nightColor2 = color(168,81,167); //#A851A7
+    textFont(font);
+
+    theme = random(['day', 'night']);
+
+    menuY = -height/2;
+    sceneClicked = false;
 }
 
 function draw() {
-    if (track_synth && track_arp && track_bass && track_drums && track_piano && track_vocals) {
-        if (track_synth.loaded && track_arp.loaded && track_bass.loaded && track_drums.loaded && track_piano.loaded && track_vocals.loaded) {
-            soundsLoaded = true;
-        }
-    }
-
-   createGradientBackground('night');
+    createGradientBackground(theme);
     ground.show();
 
 
     for (let i = 0; i < platformArray.length; i++) { 
         platformArray[i].show(); //Loop through all all platforms and render them in space
         platformArray[i].activateColliderState(playerCollisionCateg); //Activate collider state for all platforms
-        platformArray[i].checkCollision(); //Activate collider state for all platforms
     }
     
     socket.emit('createAudience', socketData); //send Create Audience socket data, 
@@ -144,24 +169,45 @@ function draw() {
         otherPlayers[i].show(); //Loop through all the other players and render them in the space
     }
 
-    player.show(); //Show player after the other players are rendered so its on the top layer. 
 
-    socket.on('position', moveAudienceElem);
 
-    if (keyIsPressed) {
-        movePlayer(keyCode);
+    if (!soundsLoaded || !sceneClicked || menuY < 0.5*height) {
+        for (let i =-width; i < width/2 + (height/0.56); i+=(height/0.56)) {
+            if (!soundsLoaded) { 
+                push(); 
+                    theme === 'night' ? image(nightLoad,i,menuY, 1.7858*height, height) : image(dayLoad,i,menuY, 1.7858*height, height);
+                pop();
+            }
+            else {
+                push(); 
+                    theme === 'night' ? image(nightClick,i,menuY, 1.7858*height, height) : image(dayClick,i,menuY, 1.7858*height, height);
+                pop(); 
+            }
+        }
     }
+    else {
+        player.show(); //Show player after the other players are rendered so its on the top layer. 
 
-    if (soundsLoaded) {
+        socket.on('position', moveAudienceElem);
+    
+        if (keyIsPressed) {
+            movePlayer(keyCode);
+        }
+
         if (!playing) {
-            track_synth.start();
-            track_arp.start();
-            track_bass.start();
-            track_drums.start();
+            audio_tracks.forEach(track => track.start()); //Start playing all tracks once loaded
             playing = true;
         }
     }
 
+    if (sceneClicked) {
+        Tone.start();
+        menuY = lerp(menuY, 0.85*height, 0.025);
+        let redString = 'Red: ' + redCoinCount + '/' + renderTotalRed;
+        let blueString = 'Blue: ' + blueCoinCount + '/' + renderTotalBlue; 
+        text(redString, camera.eyeX - width/2.2, camera.eyeY - height/2.2);
+        text(blueString, camera.eyeX  - width/2.2, camera.eyeY - height/2.35);
+    }
 
     //Updated camera follow with lerp
     if (camera.eyeY <= 1) {
@@ -176,14 +222,50 @@ function draw() {
     let minimumXpos = floor(-width/2*groundOverflowFactor + player.w/2);
     let maximumXpos = width/2*groundOverflowFactor - player.w/2;
     let freqMapping = map(playerXpos, minimumXpos, maximumXpos, 0, 22000);
+    let synthVerbMapping = map(playerXpos, minimumXpos, maximumXpos, 1, 0);
     freqMapping > 0 ? freqMapping = freqMapping : freqMapping = 0;
 
-    synth_filter.frequency.rampTo(freqMapping,2);
+    synth_filter.frequency.rampTo(floor(freqMapping),2);
+    synthVerbMapping > 1 ? synthVerbMapping = 1 : synthVerbMapping = synthVerbMapping;
+    synthVerbMapping < 0 ? synthVerbMapping = 0 : synthVerbMapping = synthVerbMapping;
+    synth_verb.wet.value = synthVerbMapping;
+
+
+    let totalProgress = (blueCoinCount + redCoinCount) / (blueCoinTotal + redCoinTotal);
+    let melodyVolumeMapping = totalProgress < 0.7 ? map(totalProgress, 0, 0.7, -75, 0) : 0;
+    let melodyVerbMapping = totalProgress < 0.7 ? map(totalProgress, 0, 0.7, 1, 0) : 0;
+    let melodyDelayMapping = totalProgress < 0.7 ? map(totalProgress, 0, 0.7, 1, 0) : 0;
+    let lerpedMelodyVolume = lerp(backgroundArp.volume.value, melodyVolumeMapping, 0.05);
+    bg_arp_verb.wet.value = melodyVerbMapping;
+    bg_arp_delay.wet.value = melodyDelayMapping;
+    backgroundArp.volume.value = lerpedMelodyVolume;
+
+    let bassVolumeMapping = totalProgress < 0.7 ? map(totalProgress, 0, 0.7, -75, 0) : 0;
+    let lerpedBassVolume = lerp(bass.volume.value, bassVolumeMapping, 0.05);
+    bass.volume.value = lerpedBassVolume;
+
+
+    let drumVolumeMapping = totalProgress < 1 ? map(totalProgress, 0, 1, -80, 0) : 0;
+    let drumFilterMapping = totalProgress < 0.7 ? map(totalProgress, 0, 0.7, 13000, 0) : 0;
+    drums_filter.frequency.rampTo(floor(freqMapping),2);
+    let drumVerbMapping = totalProgress < 0.7 ? map(totalProgress, 0, 0.7, 1, 0) : 0;
+    drums_verb.wet.value = drumVerbMapping;
+    let lerpedDrumVolume = lerp(drums.volume.value, drumVolumeMapping, 0.05);
+    drums.volume.value = lerpedDrumVolume;
+
+
+ //   let lerpedMelodyVolume = lerp(backgroundArp.volume.value, melodyVolumeMapping, 0.05);
+
+
 }
 
 function keyPressed() {
     if (keyCode === 32) {
         player.jump();
+        if (!sceneClicked) {
+            sceneClicked = true;
+            console.log(sceneClicked);
+        }
     }
 }
 
@@ -259,4 +341,8 @@ function createGradientBackground(tod) {
             image(rock_grass,i,height/2 - 150 - ground_height + 5, width, 150);
         }
     }
+}
+
+function renderMenu() {
+
 }

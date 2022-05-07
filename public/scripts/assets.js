@@ -13,8 +13,6 @@ function Ground(x,y,w,h) {
         let position = this.body.position;
 
         push(); //Use push and pop to assign the body its own layer.
-            noStroke();
-            fill(50);
             translate(position.x, position.y); //translate to position;
           //  rect(0,0, this.w, this.h); 
             imageMode(CENTER)
@@ -26,7 +24,7 @@ function Ground(x,y,w,h) {
     }
 }
 
-function Platform(x,y,w,h, audio_var) {
+function Platform(x,y,w,h) {
     let options = {
         isStatic: true,
         collisionFilter: {
@@ -36,7 +34,9 @@ function Platform(x,y,w,h, audio_var) {
     this.body = Bodies.rectangle(x,y,w,h, options);
     this.w = w;
     this.h = h;
-    this.audio_var = audio_var;
+
+    this.numberofStars = random([2,3]);
+    this.coins = [];
 
     //add our body to the world so that this body has physics applied to it.
     Composite.add(world, [this.body]);
@@ -45,12 +45,26 @@ function Platform(x,y,w,h, audio_var) {
         let position = this.body.position;
 
         push(); //Use push and pop to assign the body its own layer.
-            noStroke();
-            fill(50);
             translate(position.x, position.y); //translate to position;
             imageMode(CENTER)
             image(platformText,0,-this.h/4.2, 275, this.h); 
+
+            //render coins for this paltform
+            for (let i = 0; i < this.coins.length; i++) {
+                this.coins[i].show();
+                this.coins[i].checkCollision(position.x, position.y);
+            } 
         pop();
+    }
+
+    this.createCoins = function() {
+        let spreadCoinsOver = 230;
+        //We are centered therefore we are removing half of spreadcounter distance. Otherwise coins will start at the center of platform. 
+        let stepSize = spreadCoinsOver/this.numberofStars;
+        let df = this.numberofStars === 3 ? 75 : 55;  
+        for (let i = 0; i < this.numberofStars; i++) {
+            this.coins.push(new Coin(stepSize*i, y, 55, 55, df));
+        }
     }
 
     this.activateColliderState = function(category) {
@@ -59,22 +73,6 @@ function Platform(x,y,w,h, audio_var) {
         }
         else {
             this.body.collisionFilter.mask = null
-        }
-    }
-
-    this.checkCollision = function () { //Work on this function it is not correctly implemented
-        let collisionState = Collision.collides(this.body, player.body);
-        if (collisionState) {
-            if (collisionState.collided) {
-                if (keyIsPressed) {
-                    if (keyCode === 65) {
-                        this.audio_var.volume.value = lerp(this.audio_var.volume.value, 0, 0.05);
-                    }
-                    else if (keyCode === 83) {
-                        this.audio_var.volume.value = lerp(this.audio_var.volume.value, -100, 0.005);
-                    }
-                }
-            }
         }
     }
 }
@@ -92,6 +90,7 @@ function Player(x,y,w,h, category) {
     this.body = Bodies.rectangle(x,y,w,h, options);
     this.w = w;
     this.h = h;
+    this.visible = false;
 
     //add our body to the world so that this body has physics applied to it.
     Composite.add(world, [this.body]);
@@ -106,6 +105,7 @@ function Player(x,y,w,h, category) {
             imageMode(CENTER)
             image(playerText,0,0, this.w, this.h); 
         pop();
+        this.visible = true;
     }
 
     this.grounded = function() {
@@ -158,11 +158,13 @@ function Player(x,y,w,h, category) {
     }
 
     this.jump = function() {
-        if (this.grounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -16 });
-        }
-        if (this.platformGrounded()) {
-            Body.setVelocity(this.body, { x: 0, y: -13.7 });
+        if (player.visible) {
+            if (this.grounded()) {
+                Body.setVelocity(this.body, { x: 0, y: -16 });
+            }
+            if (this.platformGrounded()) {
+                Body.setVelocity(this.body, { x: 0, y: -13.7 });
+            }
         }
     }
 
@@ -287,5 +289,60 @@ function Audience(x,y,w,h, category, id) {
 
     this.move = function(x, y) {
         Body.setPosition(this.body, { x: x, y: y });
+    } 
+}
+
+function Coin(x,y,w,h, df) {
+    this.w = w;
+    this.h = h;
+    this.variant = random(['red', 'blue']);
+    this.x = x;
+    this.startX = x;
+    this.df = df; //df is defined as difference factor. Based on the number of collectables on a platform ( it will check how much needs to be substracted from the x value to bring the element into the center of the platform)
+    this.df_h = random([1.5, 3, 3.25, 3.7]); //defined as the difference of height for the coin.
+    this.respawnStatus = false;
+    this.maxrespawn = random([2,3,4,5,6,7]);
+    this.respawnCount = 0;
+    this.respawnDuration = random([6000,7000,9000,11000]);
+    this.myProb = random();
+    this.currentCoinTotal = 0;
+
+    this.show = function() {
+        push(); //Use push and pop to assign the body its own layer.
+            imageMode(CENTER);
+            this.variant === 'red' ? image(coin1, this.x - this.df,-this.df_h*this.h, this.w, this.h) : image(coin2,this.x - this.df,-this.df_h*this.h, this.w, this.h); 
+        pop();
+    }
+
+    this.checkCollision = function (platform_xoff, platform_yoff) {
+        let x_off = platform_xoff + (this.x - df); 
+        let y_off = platform_yoff + (-this.df_h*this.h);
+        let player_y = player.body.position.y + player.h/2;
+        let player_x = player.body.position.x + player.w/2;
+
+        if ((player_x > x_off && player_x < (x_off + this.w)) && (player_y > y_off && (player_y < (y_off + this.h)))) {
+            this.x = -5*width;
+            this.variant === 'red' ? redCoinCount++ : blueCoinCount++;
+            this.respawnStatus = true;
+            this.respawnCount++;
+            this.myProb = random();
+            if (this.myProb > 0.3 && this.respawnCount < this.maxrespawn) {
+                console.log('Red: ' + redCoinTotal);
+                console.log('Blue: ' + blueCoinTotal);
+                this.variant === 'red' ? redCoinTotal++ : blueCoinTotal++;
+            }
+        }
+
+        if (this.x === -5*width && this.respawnStatus && this.respawnCount < this.maxrespawn) {
+            const parent = this;
+            setTimeout(function () {
+                if (parent.myProb > 0.3) {
+                    parent.x = parent.startX;
+                    parent.respawnDuration = random([6000,7000,9000,11000]);
+                    parent.variant === 'red' ? renderTotalRed = redCoinTotal : renderTotalBlue = blueCoinTotal;
+                }
+            }, this.respawnDuration);
+            this.respawnStatus = false;
+        }
     } 
 }
