@@ -154,6 +154,12 @@ function Player(x,y,w,h, category) {
         else if (Matter.Collision.collides(this.body, platform12.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform12.body).collided;
         }
+        else if (Matter.Collision.collides(this.body, platform_lead.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform_lead.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform_zen.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform_zen.body).collided;
+        }
         return isGrounded;
     }
 
@@ -274,6 +280,12 @@ function Audience(x,y,w,h, category, id) {
         else if (Matter.Collision.collides(this.body, platform12.body)) {
             isGrounded = Matter.Collision.collides(this.body, platform12.body).collided;
         }
+        else if (Matter.Collision.collides(this.body, platform_lead.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform_lead.body).collided;
+        }
+        else if (Matter.Collision.collides(this.body, platform_zen.body)) {
+            isGrounded = Matter.Collision.collides(this.body, platform_zen.body).collided;
+        }
         return isGrounded;
     }
 
@@ -345,4 +357,177 @@ function Coin(x,y,w,h, df) {
             this.respawnStatus = false;
         }
     } 
+}
+
+function Ghost(x,y,w,h, category, variant) {
+    let options = {
+        isStatic: true,
+        friction: 1, //hinderance in movement in space
+        restitution: 0, //restitution will control the bounciness of the body.
+        inertia: Infinity,
+        collisionFilter: {
+            category: category,
+            group: -1
+        }
+    }
+    this.prevGhostCollisionState = null;
+    this.body = Bodies.rectangle(x,y,w,h, options);
+    this.w = w * 0.5;
+    this.h = h;
+    this.x = x;
+    this.y = y;
+    this.ghostDirection = random([1, -1]);
+    this.movementFactor = variant === 'restrict' ? 20 : 50;
+
+    //add our body to the world so that this body has physics applied to it.
+    Composite.add(world, [this.body]);
+
+
+    this.show = function() {
+        let position = this.body.position;
+        
+        push(); //Use push and pop to assign the body its own layer.
+            translate(position.x, position.y); //translate to position;
+            imageMode(CENTER)
+            image(ghost,0,0, this.w * 2, this.h); 
+        pop();
+    }
+
+
+    this.move = function() {
+        let movement = sin(frameCount * 0.03) * this.movementFactor;
+        this.body.position.x = this.x + movement * this.ghostDirection;
+
+        if (this.prevGhostCollisionState === null) {
+            if ((Matter.Collision.collides(this.body, player.body))) {
+                this.prevGhostCollisionState = (Matter.Collision.collides(this.body, player.body));
+                ghostSceneEnable === false ? ghostSceneEnable = true : ghostSceneEnable = false;
+                ghostSceneEnable === false ? currentTheme = theme : currentTheme = 'ghost';
+                console.log((Matter.Collision.collides(this.body, player.body)));
+            }
+        }
+        else {
+            if ((Matter.Collision.collides(this.body, player.body)) === null) {
+                this.prevGhostCollisionState = null;
+            }
+        }
+    }
+}
+
+function PlatformLead(x,y,w,h, variant) {
+    let options = {
+        isStatic: true,
+        collisionFilter: {
+            mask: null,
+        }
+    }
+    this.body = Bodies.rectangle(x,y,w,h, options);
+    this.w = w;
+    this.h = h;
+    this.variant = variant;
+
+    this.numberofStars = random([2,3]);
+
+    //add our body to the world so that this body has physics applied to it.
+    Composite.add(world, [this.body]);
+
+    this.show = function() {
+        let position = this.body.position;
+
+        push(); //Use push and pop to assign the body its own layer.
+            translate(position.x, position.y); //translate to position;
+            imageMode(CENTER)
+            image(platformLead,0,-this.h/4.2, 275, this.h); 
+            push(); //Use push and pop to assign the body its own layer.
+                imageMode(CENTER);
+                this.variant === 'dj' ? image(dj, 0,-80, 100, 80) : image(zen, 0,-80, 80, 90); 
+            pop();
+        pop();
+    }
+
+    this.activateColliderState = function(category) {
+        if (player.body.velocity.y > 0) {
+            this.body.collisionFilter.mask = category
+        }
+        else {
+            this.body.collisionFilter.mask = null
+        }
+    }
+
+    this.checkCollision = function() {
+        if (leadCollisionState === null) {
+            if ((Matter.Collision.collides(this.body, player.body))) {
+                leadCollisionState = (Matter.Collision.collides(this.body, player.body));
+                leadTrackEnable === false ? leadTrackEnable = true : leadTrackEnable = false;
+            }
+        }
+        else {
+            if ((Matter.Collision.collides(this.body, player.body)) === null) {
+                leadCollisionState = null;
+            }
+        }
+    }
+
+    this.zenCollision = function() {
+        if (zenCollisionState === null) {
+            if ((Matter.Collision.collides(this.body, player.body))) {
+                zenCollisionState = (Matter.Collision.collides(this.body, player.body));
+                zenMode === false ? zenMode = true : zenMode = false;
+            }
+        }
+        else {
+            if ((Matter.Collision.collides(this.body, player.body)) === null) {
+                zenCollisionState = null;
+            }
+        }
+    }
+}
+
+function Amp(x,y,w,h, category) {
+    let options = {
+        isStatic: true,
+        friction: 1, //hinderance in movement in space
+        restitution: 0, //restitution will control the bounciness of the body.
+        inertia: Infinity,
+        collisionFilter: {
+            category: category,
+            group: -1
+        }
+    }
+    this.prevGhostCollisionState = null;
+    this.body = Bodies.rectangle(x,y,w,h, options);
+    this.w = w * 0.5;
+    this.h = h;
+    this.x = x;
+    this.y = y;
+
+    //add our body to the world so that this body has physics applied to it.
+    Composite.add(world, [this.body]);
+
+
+    this.show = function() {
+        let position = this.body.position;
+        
+        push(); //Use push and pop to assign the body its own layer.
+            translate(position.x, position.y); //translate to position;
+            imageMode(CENTER);
+            melodyVariantEnable === false ? image(amp,0,0, this.w * 2, this.h) : image(ampFilled,0,0, this.w * 2, this.h);
+            ; 
+        pop();
+    }
+
+
+    this.checkCollision = function() {
+        if (this.prevGhostCollisionState === null) {
+            if ((Matter.Collision.collides(this.body, player.body))) {
+                this.prevGhostCollisionState = (Matter.Collision.collides(this.body, player.body));
+                melodyVariantEnable === false ? melodyVariantEnable = true : melodyVariantEnable = false;
+            }
+        }
+        else {
+            if ((Matter.Collision.collides(this.body, player.body)) === null) {
+                this.prevGhostCollisionState = null;
+            }
+        }
+    }
 }
