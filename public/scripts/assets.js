@@ -101,7 +101,6 @@ function Player(x,y,w,h, category) {
         
         push(); //Use push and pop to assign the body its own layer.
             translate(position.x, position.y); //translate to position;
-          //  rect(0,0, this.w, this.h); 
             imageMode(CENTER)
             image(playerText,0,0, this.w, this.h); 
         pop();
@@ -167,9 +166,11 @@ function Player(x,y,w,h, category) {
         if (player.visible) {
             if (this.grounded()) {
                 Body.setVelocity(this.body, { x: 0, y: -16 });
+                jumpAudio.start();
             }
             if (this.platformGrounded()) {
                 Body.setVelocity(this.body, { x: 0, y: -13.7 });
+                jumpAudio.start();
             }
         }
     }
@@ -183,22 +184,22 @@ function Player(x,y,w,h, category) {
             if (allowedToMove) {
                 Body.setPosition(this.body, { x: currPos.x + velocity, y: currPos.y }); //Add velocity if moving forward
                 
-                let socketData = {
+            /*    let socketData = {
                     x: currPos.x + velocity,
                     y: currPos.y
                 }
-                socket.emit('position', socketData);
+                socket.emit('position', socketData); */
             }
         }
         else {
             let allowedToMove = currPos.x - (this.w/2) > groundOverflowFactor * (0.5*width* -1);
             if (allowedToMove) {
                 Body.setPosition(this.body, { x: currPos.x - velocity, y: currPos.y });  //Decrease velocity if moving backward
-                let socketData = {
+             /*   let socketData = {
                     x: currPos.x + velocity,
                     y: currPos.y
                 }
-                socket.emit('position', socketData);
+                socket.emit('position', socketData); */
             }
         }
     }
@@ -227,9 +228,9 @@ function Audience(x,y,w,h, category, id) {
     this.show = function() {
             let position = this.body.position;
             push(); //Use push and pop to assign the body its own layer.
-                fill("#222");
                 translate(position.x, position.y); //translate to position;
-                rect(0,0, this.w, this.h); 
+                imageMode(CENTER)
+                image(otherText,0,0, this.w, this.h); 
             pop();
             this.shown = true;
     }
@@ -293,7 +294,6 @@ function Audience(x,y,w,h, category, id) {
         if (this.grounded()) {
             Body.setVelocity(this.body, { x: 0, y: -14 });
         }
-        console.log(this.platformGrounded());
         if (this.platformGrounded()) {
             Body.setVelocity(this.body, { x: 0, y: -12.5 });
         }
@@ -338,9 +338,10 @@ function Coin(x,y,w,h, df) {
             this.respawnStatus = true;
             this.respawnCount++;
             this.myProb = random();
+            let sound = random([bell1,bell2,bell3,bell4]);
+            sound.volume.value = -17;
+            sound.start();
             if (this.myProb > 0.3 && this.respawnCount < this.maxrespawn) {
-                console.log('Red: ' + redCoinTotal);
-                console.log('Blue: ' + blueCoinTotal);
                 this.variant === 'red' ? redCoinTotal++ : blueCoinTotal++;
             }
         }
@@ -378,6 +379,8 @@ function Ghost(x,y,w,h, category, variant) {
     this.y = y;
     this.ghostDirection = random([1, -1]);
     this.movementFactor = variant === 'restrict' ? 20 : 50;
+    this.prevLeadStat;
+    this.prevMelStat;
 
     //add our body to the world so that this body has physics applied to it.
     Composite.add(world, [this.body]);
@@ -403,7 +406,7 @@ function Ghost(x,y,w,h, category, variant) {
                 this.prevGhostCollisionState = (Matter.Collision.collides(this.body, player.body));
                 ghostSceneEnable === false ? ghostSceneEnable = true : ghostSceneEnable = false;
                 ghostSceneEnable === false ? currentTheme = theme : currentTheme = 'ghost';
-                console.log((Matter.Collision.collides(this.body, player.body)));
+                this.prevLeadStat = leadTrackEnable;
             }
         }
         else {
@@ -459,6 +462,7 @@ function PlatformLead(x,y,w,h, variant) {
             if ((Matter.Collision.collides(this.body, player.body))) {
                 leadCollisionState = (Matter.Collision.collides(this.body, player.body));
                 leadTrackEnable === false ? leadTrackEnable = true : leadTrackEnable = false;
+                melodyPlaying === false ? melodyPlaying = true : melodyPlaying = false;
             }
         }
         else {
@@ -473,6 +477,7 @@ function PlatformLead(x,y,w,h, variant) {
             if ((Matter.Collision.collides(this.body, player.body))) {
                 zenCollisionState = (Matter.Collision.collides(this.body, player.body));
                 zenMode === false ? zenMode = true : zenMode = false;
+                zenMode === false ? currentTheme = theme : currentTheme = 'calm';
             }
         }
         else {
@@ -511,8 +516,7 @@ function Amp(x,y,w,h, category) {
         push(); //Use push and pop to assign the body its own layer.
             translate(position.x, position.y); //translate to position;
             imageMode(CENTER);
-            melodyVariantEnable === false ? image(amp,0,0, this.w * 2, this.h) : image(ampFilled,0,0, this.w * 2, this.h);
-            ; 
+            melodyVariantEnable === false ? image(amp,0,0, this.w * 2, this.h) : image(ampFilled,0,0, this.w * 2, this.h); 
         pop();
     }
 
@@ -522,6 +526,7 @@ function Amp(x,y,w,h, category) {
             if ((Matter.Collision.collides(this.body, player.body))) {
                 this.prevGhostCollisionState = (Matter.Collision.collides(this.body, player.body));
                 melodyVariantEnable === false ? melodyVariantEnable = true : melodyVariantEnable = false;
+                backgroundArpVariantEnable === false ? backgroundArpVariantEnable = true : backgroundArpVariantEnable = false; 
             }
         }
         else {
